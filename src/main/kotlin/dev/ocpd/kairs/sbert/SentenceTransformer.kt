@@ -51,18 +51,23 @@ class SentenceTransformer private constructor(private val handle: Handle) : Auto
  */
 private object SentenceTransformerNative {
 
-    init {
-        NATIVE.load()
-    }
-
     fun load(path: String): Handle {
+        // we only load the native library when we actually get called.
+        // compares to initializing in the static block, this prevents
+        // superfluous triggering if this class gets accessed from
+        // reflection or other means.
+        // this is okay because the library handle is thread-safe and
+        // this is the only entry point of all other native calls.
+        NATIVE.load()
         val handle = load0(path)
         check(handle != 0L) { "Failed to load model. See log for details" }
         return Handle(handle)
     }
 
     fun cosineSimilarity(handle: Handle, a: String, b: String): Float {
-        return cosineSimilarity0(handle.get(), a, b)
+        return handle.borrow { ptr ->
+            cosineSimilarity0(ptr, a, b)
+        }
     }
 
     fun drop(handle: Handle) {

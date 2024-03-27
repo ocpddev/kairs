@@ -1,6 +1,7 @@
 package dev.ocpd.kairs.sbert
 
 import dev.ocpd.kairs.hf.HfHub
+import org.junit.jupiter.api.Disabled
 import org.junit.jupiter.api.Test
 
 class SentenceTransformerTest {
@@ -27,6 +28,14 @@ class SentenceTransformerTest {
                 "I am a sentence for which I would like to get its embedding.",
                 0.22324173f
             )
+        }
+    }
+
+    @Test
+    @Disabled // intended to run manually
+    fun naiveLeakTest() {
+        repeat(100) {
+            test()
         }
     }
 

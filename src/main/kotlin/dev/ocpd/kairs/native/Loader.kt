@@ -15,9 +15,31 @@ import kotlin.io.path.outputStream
  */
 internal class NativeLibrary(private val name: String) {
 
+    @Volatile
+    private var loaded = false
     private val filename = System.mapLibraryName(name)
 
+    /**
+     * Load the native library.
+     *
+     * This method is idempotent and thread-safe.
+     */
     internal fun load() {
+        // skip if already loaded
+        if (loaded) {
+            return
+        }
+        synchronized(this) {
+            // check again in case it was loaded by another thread
+            if (loaded) {
+                return
+            }
+            loadLibrary()
+            loaded = true
+        }
+    }
+
+    private fun loadLibrary() {
         val libPath = libPath()
         // currently extract every time, maybe we should cache it?
         extractResource(libPath)
