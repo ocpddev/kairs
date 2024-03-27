@@ -1,0 +1,30 @@
+[package]
+name = "kairs"
+version = "0.1.0"
+edition = "2021"
+
+
+[dependencies]
+anyhow = "1.0.81"
+serde_json = "1.0.114"
+tokenizers = "0.15.2"
+candle-core = "0.4.1"
+candle-nn = "0.4.1"
+candle-transformers = "0.4.1"
+jni = "0.21.1"
+
+[dev-dependencies]
+approx = "0.5.1"
+criterion = "0.5.1"
+
+[[bench]]
+name = "cos_sim"
+harness = false
+
+[lib]
+crate-type = ["lib", "cdylib"]
+
+[profile.release]
+strip = true
+lto = true
+codegen-units = 1
