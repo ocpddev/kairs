@@ -11,7 +11,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Fixed
 
-- Exception should be thrown when similarity calculation failed
+- Exception should be thrown when similarity calculation fails.
 
 ## [0.1.0] - 2024-03-28
 
