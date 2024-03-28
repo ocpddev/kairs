@@ -44,8 +44,7 @@ extern "system" fn Java_dev_ocpd_kairs_sbert_SentenceTransformerNative_cosineSim
     inner(env, this, a, b).unwrap_or_else(|e| {
         eprintln!("Failed to calculate cosine similarity: {:?}", e);
         // return an abnormal value to indicate an error,
-        // a normal result should always be positive.
-        -1.0
+        f32::NAN
     })
 }
 

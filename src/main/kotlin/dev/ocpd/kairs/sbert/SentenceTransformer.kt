@@ -28,10 +28,12 @@ class SentenceTransformer private constructor(private val handle: Handle) : Auto
     /**
      * Calculate the cosine similarity between two sentences.
      *
-     * @return a value between 0.0 and 1.0, where 1.0 means the sentences are identical
+     * @return a value between -1.0 and 1.0, where 1.0 means the sentences are identical.
      */
     fun cosineSimilarity(a: String, b: String): Float {
-        return SentenceTransformerNative.cosineSimilarity(handle, a, b)
+        val score = SentenceTransformerNative.cosineSimilarity(handle, a, b)
+        if (score.isNaN()) throw IllegalStateException("Failed to calculate similarity. See log for details")
+        return score
     }
 
     /**
