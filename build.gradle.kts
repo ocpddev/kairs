@@ -38,11 +38,12 @@ tasks.named<Jar>("javadocJar") {
 }
 
 val buildNative = task<Copy>("buildNative") {
-    dependsOn(":native:build")
-    from(project(":native").cargo().libOutputPath(project.name))
+    group = "build"
+    dependsOn(":native:copyArtifacts")
+    from(project(":native").layout.buildDirectory.dir("libs"))
     into(sourceSets.main.map {
         val resOutDir = it.output.resourcesDir ?: error("Expect to have resource output dir")
-        resOutDir.resolve("native/${project.name}/${Platform.current().identifier()}")
+        resOutDir.resolve("native")
     })
 }
 

@@ -1,6 +1,5 @@
 package dev.ocpd.kairs.native
 
-import dev.ocpd.kairs.LIB_NAME
 import dev.ocpd.kairs.cache.CACHE
 import java.net.URL
 import java.nio.file.Path
@@ -57,7 +56,7 @@ internal class NativeLibrary(private val name: String) {
 
     private fun resourceUrl(): URL {
         val platform = Platform.current()
-        val path = "/native/$LIB_NAME/${platform.identifier()}/$filename"
+        val path = "/native/${platform.identifier()}/$filename"
         return this.javaClass.getResource(path)
             ?: throw UnsupportedOperationException("Native library $filename is not available for $platform")
     }
