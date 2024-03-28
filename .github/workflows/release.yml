@@ -4,7 +4,6 @@ permissions:
   contents: write
 
 on:
-  workflow_dispatch:
   push:
     tags:
       - 'v[0-9]+.[0-9]+.[0-9]+'
@@ -22,7 +21,7 @@ jobs:
           distribution: 'temurin'
           java-version: '21'
       - uses: gradle/actions/setup-gradle@v3
-      - run: ./gradlew :native:copyArtifacts '-Pcargo.profile=release'
+      - run: ./gradlew '-Pcargo.profile=release' :native:copyArtifacts
       - uses: actions/upload-artifact@v4
         with:
           name: native-${{ matrix.os }}
@@ -41,14 +40,13 @@ jobs:
       - uses: gradle/actions/setup-gradle@v3
       - uses: actions/download-artifact@v4
         with:
-          name: native-windows-latest
-          path: build/libs
-      - uses: actions/download-artifact@v4
-        with:
-          name: native-macos-latest
-          path: build/libs
-      - uses: actions/download-artifact@v4
-        with:
-          name: native-macos-14
-          path: build/libs
-      - run: ls -R native/build/libs
+          pattern: native-*
+          path: native/build/libs
+          merge-multiple: true
+      - run: ./gradlew '-Pcargo.profile=release' build publish
+        env:
+          OSSRH_USERNAME: ${{ secrets.OSSRH_USERNAME }}
+          OSSRH_PASSWORD: ${{ secrets.OSSRH_PASSWORD }}
+          OCPD_SIGN_KEY: ${{ secrets.OCPD_SIGN_KEY }}
+          OCPD_SIGN_KEY_ID: ${{ secrets.OCPD_SIGN_KEY_ID }}
+          OCPD_SIGN_PASSPHRASE: ${{ secrets.OCPD_SIGN_PASSPHRASE }}
