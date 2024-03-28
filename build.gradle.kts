@@ -57,7 +57,7 @@ publishing {
             from(components["java"])
             pom {
                 name = "kairs"
-                description = "Kotlin AI with Rust"
+                description = "Kotlin AI powered by Rust"
                 url = "https://github.com/ocpddev/kairs"
                 licenses {
                     license {
