@@ -8,7 +8,7 @@ use jni::JNIEnv;
 /// Returns a pointer to the loaded model.
 /// The caller is responsible for freeing the memory by calling `drop`.
 #[no_mangle]
-extern "system" fn Java_dev_ocpd_kairs_sbert_SentenceTransformerNative_load0(
+extern "system" fn Java_dev_ocpd_kairs_sbert_SentenceTransformerNative_fromDir(
     env: JNIEnv,
     _: JClass,
     path: JString,
@@ -16,7 +16,7 @@ extern "system" fn Java_dev_ocpd_kairs_sbert_SentenceTransformerNative_load0(
     fn inner(mut env: JNIEnv, path: JString) -> Result<jlong> {
         let path = env.get_string(&path)?;
         let path = path.to_str()?;
-        let transformer = SentenceTransformer::load(path)?;
+        let transformer = SentenceTransformer::from_dir(path)?;
         Ok(Box::into_raw(Box::new(transformer)) as jlong)
     }
     inner(env, path).unwrap_or_else(|e| {

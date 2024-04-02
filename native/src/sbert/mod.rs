@@ -1,9 +1,11 @@
-use anyhow::anyhow;
+use std::fs::File;
+use std::path::Path;
+
+use anyhow::{anyhow, Result};
 use candle_core::{Device, Tensor};
 use candle_nn::VarBuilder;
 use candle_transformers::models::bert::{BertModel, Config, DTYPE};
-use std::fs::File;
-use std::path::Path;
+use hf_hub::api::sync::Api;
 use tokenizers::{PaddingStrategy, Tokenizer};
 
 mod jni;
@@ -18,17 +20,10 @@ pub struct SentenceTransformer {
 }
 
 impl SentenceTransformer {
-    /// Load a pre-trained transformer model from a directory.
-    /// The directory should contain the following files:
-    /// - `config.json` (a JSON file containing the model configuration)
-    /// - `tokenizer.json` (a JSON file containing the tokenizer configuration)
-    /// - `pytorch_model.bin` (a binary file containing the model weights)
-    pub fn load(path: impl AsRef<Path>) -> anyhow::Result<Self> {
-        let path = path.as_ref();
-        let config = File::open(path.join("config.json"))?;
-        let config: Config = serde_json::from_reader(config)?;
-        let mut tokenizer =
-            Tokenizer::from_file(path.join("tokenizer.json")).map_err(|e| anyhow!(e))?;
+    /// Create a new sentence transformer pipeline from a pre-trained BERT model and a tokenizer.
+    ///
+    /// Also forcing the padding strategy to `PaddingStrategy::BatchLongest`.
+    fn new(model: BertModel, mut tokenizer: Tokenizer) -> Self {
         // The default padding strategy that comes with the tokenizer is unsuitable
         // for batch encoding as it always pads to a fixed length.
         // This will produce incorrect results because we don't have attention masks implemented.
@@ -37,15 +32,57 @@ impl SentenceTransformer {
         if let Some(p) = tokenizer.get_padding_mut() {
             p.strategy = PaddingStrategy::BatchLongest
         };
-        let vb = VarBuilder::from_pth(path.join("pytorch_model.bin"), DTYPE, DEVICE)?;
+        Self { model, tokenizer }
+    }
+
+    /// Load `sentence-transformers/all-MiniLM-L6-v2` from the Hugging Face model hub.
+    pub fn preset_default() -> Result<Self> {
+        SentenceTransformer::from_hf("sentence-transformers/all-MiniLM-L6-v2".to_string())
+    }
+
+    /// Load a pre-trained transformer model from a directory.
+    ///
+    /// The directory should contain the following files:
+    /// - `tokenizer.json` (a JSON file containing the tokenizer configuration)
+    /// - `config.json` (a JSON file containing the model configuration)
+    /// - `pytorch_model.bin` (a binary file containing the model weights)
+    pub fn from_dir(path: impl AsRef<Path>) -> Result<Self> {
+        let path = path.as_ref();
+        Self::from_files(
+            path.join("tokenizer.json"),
+            path.join("config.json"),
+            path.join("pytorch_model.bin"),
+        )
+    }
+
+    /// Load a pre-trained transformer model from the Hugging Face model hub.
+    pub fn from_hf(model_id: String) -> Result<Self> {
+        let api = Api::new()?;
+        let repo = api.model(model_id);
+        Self::from_files(
+            repo.get("tokenizer.json")?,
+            repo.get("config.json")?,
+            repo.get("pytorch_model.bin")?,
+        )
+    }
+
+    fn from_files(
+        tokenizer: impl AsRef<Path>,
+        config: impl AsRef<Path>,
+        model: impl AsRef<Path>,
+    ) -> Result<Self> {
+        let config = File::open(config)?;
+        let config: Config = serde_json::from_reader(config)?;
+        let tokenizer = Tokenizer::from_file(tokenizer).map_err(|e| anyhow!(e))?;
+        let vb = VarBuilder::from_pth(model, DTYPE, DEVICE)?;
         let model = BertModel::load(vb, &config)?;
-        Ok(Self { model, tokenizer })
+        Ok(Self::new(model, tokenizer))
     }
 
     /// Generate embeddings for a list of sentences.
     ///
     /// Returns `[n_sentences][hidden_size]` => `[[f32; hidden_size]; n_sentences]`
-    pub fn embed(&self, inputs: Vec<&str>) -> anyhow::Result<Tensor> {
+    pub fn embed(&self, inputs: Vec<&str>) -> Result<Tensor> {
         // Encode the input sentences into tokens
         let tokens = self
             .tokenizer
@@ -55,7 +92,7 @@ impl SentenceTransformer {
         let token_ids = tokens
             .into_iter()
             .map(|tokens| Ok(Tensor::new(tokens.get_ids(), DEVICE)?))
-            .collect::<anyhow::Result<Vec<_>>>()?;
+            .collect::<Result<Vec<_>>>()?;
         // [n_sentences][n_token_ids]
         let token_ids = Tensor::stack(&token_ids, 0)?;
         // `token_type_ids` will not be used in our use case
@@ -75,7 +112,7 @@ impl SentenceTransformer {
     /// consider using [`cos_sim_batch`] instead.
     ///
     /// [`cos_sim_batch`]: Self::cos_sim_batch
-    pub fn cos_sim(&self, inputs: (&str, &str)) -> anyhow::Result<f32> {
+    pub fn cos_sim(&self, inputs: (&str, &str)) -> Result<f32> {
         let a = self.embed(vec![inputs.0])?.get(0)?;
         let b = self.embed(vec![inputs.1])?.get(0)?;
         dot_score(&a, &b)
@@ -90,7 +127,7 @@ impl SentenceTransformer {
     ///
     /// CAUTION: this variant currently has accuracy issues.
     /// See: https://github.com/huggingface/candle/issues/1798
-    pub fn cos_sim_batch(&self, inputs: (&str, &str)) -> anyhow::Result<f32> {
+    pub fn cos_sim_batch(&self, inputs: (&str, &str)) -> Result<f32> {
         let embeddings = self.embed(vec![inputs.0, inputs.1])?;
         dot_score(&embeddings.get(0)?, &embeddings.get(1)?)
     }
@@ -100,7 +137,7 @@ impl SentenceTransformer {
 ///
 /// This is equivalent to the cosine similarity between two embeddings
 /// when both embeddings are normalized.
-fn dot_score(a: &Tensor, b: &Tensor) -> anyhow::Result<f32> {
+fn dot_score(a: &Tensor, b: &Tensor) -> Result<f32> {
     Ok((a * b)?.sum_all()?.to_scalar()?)
 }
 
@@ -108,6 +145,6 @@ fn dot_score(a: &Tensor, b: &Tensor) -> anyhow::Result<f32> {
 ///
 /// Note: The input is **a vector of embeddings**, not a single embedding vector.
 ///       In other words, the input is a tensor of shape `[n_sentences][hidden_size]`.
-fn normalize_l2(v: &Tensor) -> anyhow::Result<Tensor> {
+fn normalize_l2(v: &Tensor) -> Result<Tensor> {
     Ok(v.broadcast_div(&v.sqr()?.sum_keepdim(1)?.sqrt()?)?)
 }

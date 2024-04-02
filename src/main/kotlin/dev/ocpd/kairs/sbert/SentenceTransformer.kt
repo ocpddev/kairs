@@ -19,8 +19,8 @@ class SentenceTransformer private constructor(private val handle: Handle) : Auto
     /**
      * Load a pre-trained transformer model from a directory.
      * The directory should contain the following files:
-     * - `config.json` (a JSON file containing the model configuration)
      * - `tokenizer.json` (a JSON file containing the tokenizer configuration)
+     * - `config.json` (a JSON file containing the model configuration)
      * - `pytorch_model.bin` (a binary file containing the model weights)
      */
     constructor(modelDir: Path) : this(SentenceTransformerNative.load(modelDir.toString()))
@@ -61,7 +61,7 @@ private object SentenceTransformerNative {
         // this is okay because the library handle is thread-safe and
         // this is the only entry point of all other native calls.
         NATIVE.load()
-        val handle = load0(path)
+        val handle = fromDir(path)
         check(handle != 0L) { "Failed to load model. See log for details" }
         return Handle(handle)
     }
@@ -76,7 +76,7 @@ private object SentenceTransformerNative {
         drop0(handle.take())
     }
 
-    private external fun load0(path: String): Long
+    private external fun fromDir(path: String): Long
     private external fun cosineSimilarity0(handle: Long, a: String, b: String): Float
     private external fun drop0(handle: Long)
 }

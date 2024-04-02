@@ -3,7 +3,8 @@ use criterion::{black_box, criterion_group, criterion_main, Criterion};
 use kairs::sbert::SentenceTransformer;
 
 pub fn criterion_benchmark(c: &mut Criterion) {
-    let transformer = SentenceTransformer::load("./models/minilm").unwrap();
+    let transformer = SentenceTransformer::preset_default().unwrap();
+
     c.bench_function("cos_sim", |b| {
         b.iter(|| transformer.cos_sim(input()).unwrap())
     });
