@@ -13,7 +13,7 @@ repositories {
 
 dependencies {
     implementation("dev.ocpd.slf4k:slf4k:0.2.0")
-    testImplementation("ch.qos.logback:logback-classic:1.5.3")
+    testImplementation("ch.qos.logback:logback-classic:1.5.4")
     testImplementation(kotlin("test-junit5"))
 }
 
