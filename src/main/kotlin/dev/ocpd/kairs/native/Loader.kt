@@ -1,6 +1,8 @@
 package dev.ocpd.kairs.native
 
 import dev.ocpd.kairs.cache.CACHE
+import dev.ocpd.slf4k.slf4j
+import dev.ocpd.slf4k.warn
 import java.net.URL
 import java.nio.file.Path
 import kotlin.io.path.div
@@ -40,8 +42,15 @@ internal class NativeLibrary(private val name: String) {
 
     private fun loadLibrary() {
         val libPath = libPath()
-        // currently extract every time, maybe we should cache it?
-        extractResource(libPath)
+        try {
+            // currently extract every time, maybe we should cache it?
+            extractResource(libPath)
+        } catch (e: Exception) {
+            // we should not panic if the extraction fails.
+            // in containerized environments, the library might be cached
+            // within the image at build time and set to read-only.
+            log.warn(e) { "Failed to extract native library: ${e.message}" }
+        }
         System.load(libPath.toAbsolutePath().toString())
     }
 
@@ -63,5 +72,9 @@ internal class NativeLibrary(private val name: String) {
 
     private fun libPath(): Path {
         return CACHE.nativeDir() / filename
+    }
+
+    companion object {
+        private val log by slf4j
     }
 }
