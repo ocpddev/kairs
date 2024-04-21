@@ -15,7 +15,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Fixed
 
-- Avoid panicking when failed to extract native resources.
+- Avoid panicking when failing to extract native resources.
 
 ## [0.1.1] - 2024-03-28
 
