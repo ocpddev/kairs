@@ -41,7 +41,7 @@ jobs:
       - uses: actions/download-artifact@v4
         with:
           pattern: native-*
-          path: native/build/libs
+          path: src/main/resources/native
           merge-multiple: true
       - run: ./gradlew '-Pcargo.profile=release' '-Pkairs.skipNative=true' build publish
         env:
