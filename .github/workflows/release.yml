@@ -32,7 +32,7 @@ jobs:
       - uses: actions/setup-java@v4
         with:
           distribution: 'temurin'
-          java-version: '21'
+          java-version: '17'
       - uses: gradle/actions/setup-gradle@v3
       - run: ./gradlew '-Pcargo.profile=release' :native:build
       - uses: actions/upload-artifact@v4
@@ -49,7 +49,7 @@ jobs:
       - uses: actions/setup-java@v4
         with:
           distribution: 'temurin'
-          java-version: '21'
+          java-version: '17'
       - uses: gradle/actions/setup-gradle@v3
       - uses: actions/download-artifact@v4
         with:
