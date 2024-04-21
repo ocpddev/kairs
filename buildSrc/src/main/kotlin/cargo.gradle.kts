@@ -3,7 +3,7 @@ plugins {
 }
 
 private val cargoProfile = run {
-    val property = project.findProperty("cargo.profile") as? String ?: "debug"
+    val property = providers.gradleProperty("cargo.profile").getOrElse("debug")
     when (property) {
         CargoProfile.Debug.value -> CargoProfile.Debug
         CargoProfile.Release.value -> CargoProfile.Release
@@ -38,13 +38,13 @@ val cargoBuild = task<Exec>("cargoBuild") {
     outputs.file("target/${cargoProfile.value}/$mappedLibName")
 }
 
-tasks.assemble {
-    dependsOn(cargoBuild)
-}
-
-val copyArtifacts = task<Copy>("copyArtifacts") {
+val collectArtifacts = task<Copy>("collectArtifacts") {
     group = "build"
     dependsOn(cargoBuild)
     from(cargoBuild.outputs)
     into(base.libsDirectory.dir(Platform.current().identifier()))
+}
+
+tasks.assemble {
+    dependsOn(collectArtifacts)
 }

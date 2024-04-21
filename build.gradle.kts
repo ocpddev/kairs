@@ -37,9 +37,9 @@ tasks.named<Jar>("javadocJar") {
     from(tasks.named("dokkaJavadoc"))
 }
 
-val buildNative = task<Copy>("buildNative") {
+val collectNative = task<Copy>("collectNative") {
     group = "build"
-    dependsOn(":native:copyArtifacts")
+    dependsOn(":native:build")
     from(project(":native").layout.buildDirectory.dir("libs"))
     into(sourceSets.main.map {
         val resOutDir = it.output.resourcesDir ?: error("Expect to have resource output dir")
@@ -48,7 +48,7 @@ val buildNative = task<Copy>("buildNative") {
 }
 
 tasks.processResources {
-    dependsOn(buildNative)
+    dependsOn(collectNative)
 }
 
 publishing {
@@ -104,4 +104,4 @@ signing {
 }
 
 fun Project.findSecret(key: String, env: String): String? =
-    project.findProperty(key) as? String ?: System.getenv(env)
+    providers.gradleProperty(key).orElse(providers.environmentVariable(env)).orNull
