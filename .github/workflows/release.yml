@@ -43,7 +43,7 @@ jobs:
           pattern: native-*
           path: native/build/libs
           merge-multiple: true
-      - run: ./gradlew '-Pcargo.profile=release' build publish
+      - run: ./gradlew '-Pcargo.profile=release' '-Pkairs.skipNative=true' build publish
         env:
           OSSRH_USERNAME: ${{ secrets.OSSRH_USERNAME }}
           OSSRH_PASSWORD: ${{ secrets.OSSRH_PASSWORD }}
