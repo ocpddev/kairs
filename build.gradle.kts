@@ -48,7 +48,10 @@ val collectNative = task<Copy>("collectNative") {
 }
 
 tasks.processResources {
-    dependsOn(collectNative)
+    val skip = providers.gradleProperty("kairs.skipNative").map(String::toBoolean).getOrElse(false)
+    if (!skip) {
+        dependsOn(collectNative)
+    }
 }
 
 publishing {
