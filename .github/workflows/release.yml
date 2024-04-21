@@ -26,7 +26,7 @@ jobs:
         if: matrix.container == 'redhat/ubi8'
         shell: bash
         run: |
-          dnf install -y gcc openssl-devel
+          dnf install -y llvm-toolset openssl-devel
           curl --proto '=https' --tlsv1.2 --retry 10 --retry-connrefused -fsSL "https://sh.rustup.rs" | sh -s -- --profile minimal -y
           echo "${CARGO_HOME:-$HOME/.cargo}/bin" >> $GITHUB_PATH
       - uses: actions/setup-java@v4
