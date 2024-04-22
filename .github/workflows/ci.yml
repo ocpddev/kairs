@@ -29,6 +29,7 @@ jobs:
     steps:
       - uses: actions/checkout@v4
       - run: cargo test --all-features
+        working-directory: ./native
   test:
     strategy:
       matrix:
