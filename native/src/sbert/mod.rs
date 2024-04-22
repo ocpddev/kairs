@@ -5,6 +5,7 @@ use anyhow::{anyhow, Result};
 use candle_core::{Device, Tensor};
 use candle_nn::VarBuilder;
 use candle_transformers::models::bert::{BertModel, Config, DTYPE};
+#[cfg(feature = "hf-hub")]
 use hf_hub::api::sync::Api;
 use tokenizers::{PaddingStrategy, Tokenizer};
 
@@ -36,6 +37,7 @@ impl SentenceTransformer {
     }
 
     /// Load `sentence-transformers/all-MiniLM-L6-v2` from the Hugging Face model hub.
+    #[cfg(feature = "hf-hub")]
     pub fn preset_default() -> Result<Self> {
         SentenceTransformer::from_hf("sentence-transformers/all-MiniLM-L6-v2".to_string())
     }
@@ -56,6 +58,7 @@ impl SentenceTransformer {
     }
 
     /// Load a pre-trained transformer model from the Hugging Face model hub.
+    #[cfg(feature = "hf-hub")]
     pub fn from_hf(model_id: String) -> Result<Self> {
         let api = Api::new()?;
         let repo = api.model(model_id);

@@ -1,7 +1,11 @@
 [package]
 name = "kairs"
-version = "0.1.1"
+version = "0.2.1"
 edition = "2021"
+
+
+[features]
+hf-hub = ["dep:hf-hub"]
 
 [dependencies]
 anyhow = "1.0.82"
@@ -11,7 +15,7 @@ candle-core = "0.4.1"
 candle-nn = "0.4.1"
 candle-transformers = "0.4.1"
 jni = "0.21.1"
-hf-hub = "0.3.2"
+hf-hub = { version = "0.3.2", optional = true }
 
 [dev-dependencies]
 approx = "0.5.1"
@@ -20,6 +24,19 @@ criterion = "0.5.1"
 [[bench]]
 name = "cos_sim"
 harness = false
+required-features = ["hf-hub"]
+
+[[example]]
+name = "cos_sim"
+required-features = ["hf-hub"]
+
+[[test]]
+name = "cos_sim"
+required-features = ["hf-hub"]
+
+[[test]]
+name = "pipeline"
+required-features = ["hf-hub"]
 
 [lib]
 crate-type = ["lib", "cdylib"]
