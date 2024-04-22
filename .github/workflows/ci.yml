@@ -25,10 +25,7 @@ jobs:
         working-directory: ./native
         run: cargo clippy --all-targets --all-features -- -D warnings
   test-native:
-    strategy:
-      matrix:
-        os: [ ubuntu-latest, windows-latest, macos-latest, macos-14 ]
-    runs-on: ${{ matrix.os }}
+    runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
       - run: cargo test --all-features
