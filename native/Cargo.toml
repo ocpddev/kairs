@@ -8,7 +8,7 @@ edition = "2021"
 hf-hub = ["dep:hf-hub"]
 
 [dependencies]
-anyhow = "1.0.82"
+anyhow = "1.0.84"
 serde_json = "1.0.117"
 tokenizers = "0.19.1"
 candle-core = "0.4.1"
