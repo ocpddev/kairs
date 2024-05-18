@@ -39,7 +39,7 @@ extern "system" fn Java_dev_ocpd_kairs_sbert_SentenceTransformerNative_cosineSim
         let a = a.to_str()?;
         let b = env.get_string(&b)?;
         let b = b.to_str()?;
-        transformer.cos_sim((&a, &b))
+        transformer.cos_sim((a, b))
     }
     inner(env, this, a, b).unwrap_or_else(|e| {
         eprintln!("Failed to calculate cosine similarity: {:?}", e);
