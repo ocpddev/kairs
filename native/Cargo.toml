@@ -9,7 +9,7 @@ hf-hub = ["dep:hf-hub"]
 
 [dependencies]
 anyhow = "1.0.85"
-serde_json = "1.0.117"
+serde_json = "1.0.119"
 tokenizers = "0.19.1"
 candle-core = "0.5.0"
 candle-nn = "0.5.0"
